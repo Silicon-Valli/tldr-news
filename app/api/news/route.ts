@@ -97,7 +97,7 @@ ${articleList}`,
 const getCachedNews = (category: string) =>
   unstable_cache(
     () => fetchAndSummarize(category),
-    [`news-${category}`],
+    [`news-guardian-v1-${category}`],
     { revalidate: 1800 }
   )();
 
