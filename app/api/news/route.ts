@@ -2,44 +2,55 @@ import { NextRequest, NextResponse } from 'next/server';
 import Anthropic from '@anthropic-ai/sdk';
 import { unstable_cache } from 'next/cache';
 
-const CATEGORY_MAP: Record<string, { category?: string; q?: string }> = {
-  world: { category: 'general' },
-  tech: { category: 'technology' },
-  business: { category: 'business' },
-  politics: { q: 'politics' },
+const GUARDIAN_SECTION_MAP: Record<string, string> = {
+  world: 'world',
+  tech: 'technology',
+  business: 'business',
+  politics: 'politics',
 };
 
-async function fetchAndSummarize(category: string) {
-  const params = CATEGORY_MAP[category] || { category: 'general' };
-  const url = new URL('https://newsapi.org/v2/top-headlines');
-  url.searchParams.set('language', 'en');
-  url.searchParams.set('pageSize', '12');
-  url.searchParams.set('apiKey', process.env.NEWSAPI_KEY!);
+interface GuardianArticle {
+  id: string;
+  webTitle: string;
+  webUrl: string;
+  webPublicationDate: string;
+  fields?: {
+    trailText?: string;
+  };
+}
 
-  if (params.category) url.searchParams.set('category', params.category);
-  if (params.q) url.searchParams.set('q', params.q);
+async function fetchAndSummarize(category: string) {
+  const section = GUARDIAN_SECTION_MAP[category] || 'world';
+  const apiKey = process.env.GUARDIAN_API_KEY || 'test';
+
+  const url = new URL('https://content.guardianapis.com/search');
+  url.searchParams.set('section', section);
+  url.searchParams.set('api-key', apiKey);
+  url.searchParams.set('page-size', '10');
+  url.searchParams.set('order-by', 'newest');
+  url.searchParams.set('show-fields', 'trailText');
 
   const newsResponse = await fetch(url.toString());
   const newsData = await newsResponse.json();
 
-  if (!newsData.articles || newsData.articles.length === 0) {
+  if (!newsData.response?.results || newsData.response.results.length === 0) {
+    console.error('Guardian API issue:', JSON.stringify(newsData).slice(0, 300));
     return [];
   }
 
-  const validArticles = newsData.articles.filter(
-    (a: { title: string; url: string }) =>
-      a.title && a.title !== '[Removed]' && a.url
+  const articles: GuardianArticle[] = newsData.response.results.filter(
+    (a: GuardianArticle) => a.webTitle && a.webUrl
   );
 
-  if (validArticles.length === 0) return [];
+  if (articles.length === 0) return [];
 
   // Generate TLDRs with Claude in one batch call
   const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
-  const articleList = validArticles
+  const articleList = articles
     .map(
-      (a: { title: string; description?: string }, i: number) =>
-        `${i + 1}. Title: "${a.title}"\n   Description: "${a.description || 'No description available'}"`
+      (a, i) =>
+        `${i + 1}. Title: "${a.webTitle}"\n   Description: "${a.fields?.trailText || 'No description available'}"`
     )
     .join('\n\n');
 
@@ -67,31 +78,20 @@ ${articleList}`,
       tldrData = JSON.parse(jsonMatch[0]);
     }
   } catch {
-    tldrData = validArticles.map((a: { description?: string; title: string }) => ({
-      tldr: a.description || a.title,
+    tldrData = articles.map((a) => ({
+      tldr: a.fields?.trailText || a.webTitle,
     }));
   }
 
-  return validArticles.map(
-    (
-      a: {
-        title: string;
-        source?: { name?: string };
-        url: string;
-        publishedAt: string;
-        description?: string;
-      },
-      i: number
-    ) => ({
-      id: `${category}-${i}-${a.url.slice(-8)}`,
-      title: a.title,
-      tldr: tldrData[i]?.tldr || a.description || a.title,
-      source: a.source?.name || 'Unknown',
-      url: a.url,
-      publishedAt: a.publishedAt,
-      category,
-    })
-  );
+  return articles.map((a, i) => ({
+    id: `${category}-${i}-${a.id.slice(-8)}`,
+    title: a.webTitle,
+    tldr: tldrData[i]?.tldr || a.fields?.trailText || a.webTitle,
+    source: 'The Guardian',
+    url: a.webUrl,
+    publishedAt: a.webPublicationDate,
+    category,
+  }));
 }
 
 const getCachedNews = (category: string) =>
