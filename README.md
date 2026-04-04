@@ -71,7 +71,7 @@ Start it:
 npm run dev
 ```
 
-Open [localhost:3000](http://localhost:3000) on your phone (or use browser dev tools in mobile view). The swipe experience only really makes sense on a narrow screen.
+Open [localhost:3000](http://localhost:3000) in your browser. The swipe experience is designed for mobile, so use Chrome DevTools → toggle device toolbar to preview it at phone width. (Or access it from your phone via your computer's local IP, like `192.168.x.x:3000`, if you're on the same WiFi.)
 
 ---
 
