@@ -2,10 +2,12 @@ export interface Article {
   id: string;
   title: string;
   tldr: string;
+  bullets: string[];
   source: string;
   url: string;
   publishedAt: string;
   category: string;
+  imageUrl?: string;
 }
 
 export type Category = 'world' | 'tech' | 'business' | 'politics';

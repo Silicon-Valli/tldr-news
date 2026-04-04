@@ -16,6 +16,7 @@ interface GuardianArticle {
   webPublicationDate: string;
   fields?: {
     trailText?: string;
+    thumbnail?: string;
   };
 }
 
@@ -28,7 +29,7 @@ async function fetchAndSummarize(category: string) {
   url.searchParams.set('api-key', apiKey);
   url.searchParams.set('page-size', '10');
   url.searchParams.set('order-by', 'newest');
-  url.searchParams.set('show-fields', 'trailText');
+  url.searchParams.set('show-fields', 'trailText,thumbnail');
 
   const newsResponse = await fetch(url.toString());
   const newsData = await newsResponse.json();
@@ -44,7 +45,6 @@ async function fetchAndSummarize(category: string) {
 
   if (articles.length === 0) return [];
 
-  // Generate TLDRs with Claude in one batch call
   const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
   const articleList = articles
@@ -54,16 +54,21 @@ async function fetchAndSummarize(category: string) {
     )
     .join('\n\n');
 
-  let tldrData: { tldr: string }[] = [];
+  let summaryData: { tldr: string; bullets: string[] }[] = [];
 
   try {
     const message = await anthropic.messages.create({
       model: 'claude-haiku-4-5-20251001',
-      max_tokens: 1024,
+      max_tokens: 2048,
       messages: [
         {
           role: 'user',
-          content: `For each news article below, write a TLDR in 1-2 punchy sentences. Be direct and factual — no fluff, no filler. Return ONLY a JSON array like: [{"tldr": "..."}, ...]
+          content: `For each news article below, write:
+1. A TLDR in 1-2 punchy sentences. Direct and factual, no fluff.
+2. Exactly 2-3 bullet points. Each should be one tight sentence with a specific fact, number, or "why it matters" angle — the kind of thing you'd drop in a conversation to sound informed.
+
+Return ONLY a JSON array like:
+[{"tldr": "...", "bullets": ["...", "...", "..."]}, ...]
 
 Articles:
 ${articleList}`,
@@ -75,29 +80,32 @@ ${articleList}`,
       message.content[0].type === 'text' ? message.content[0].text : '';
     const jsonMatch = content.match(/\[[\s\S]*\]/);
     if (jsonMatch) {
-      tldrData = JSON.parse(jsonMatch[0]);
+      summaryData = JSON.parse(jsonMatch[0]);
     }
   } catch {
-    tldrData = articles.map((a) => ({
+    summaryData = articles.map((a) => ({
       tldr: a.fields?.trailText || a.webTitle,
+      bullets: [],
     }));
   }
 
   return articles.map((a, i) => ({
     id: `${category}-${i}-${a.id.slice(-8)}`,
     title: a.webTitle,
-    tldr: tldrData[i]?.tldr || a.fields?.trailText || a.webTitle,
+    tldr: summaryData[i]?.tldr || a.fields?.trailText || a.webTitle,
+    bullets: summaryData[i]?.bullets || [],
     source: 'The Guardian',
     url: a.webUrl,
     publishedAt: a.webPublicationDate,
     category,
+    imageUrl: a.fields?.thumbnail || undefined,
   }));
 }
 
 const getCachedNews = (category: string) =>
   unstable_cache(
     () => fetchAndSummarize(category),
-    [`news-guardian-v1-${category}`],
+    [`news-guardian-v2-${category}`],
     { revalidate: 1800 }
   )();
 
