@@ -1,36 +1,107 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# TLDR News
 
-## Getting Started
+> The news. Without the noise.
 
-First, run the development server:
+**[Live demo →](https://tldr-news-eight.vercel.app)**
+
+---
+
+TLDR News is a mobile-first news reader that strips every story down to what actually matters — a two-sentence summary, three bullet points, and a link if you want more. Swipe through like TikTok, but for staying informed instead of doomscrolling.
+
+No ads. No algorithm trying to keep you angry. Just news, fast.
+
+---
+
+## What it looks like
+
+Four categories: **World**, **Tech & AI**, **Business**, **Politics**.
+
+Each card gives you:
+- A headline
+- A 1-2 sentence TLDR (written by AI, based on the actual article)
+- 2-3 bullet points with the specific facts worth knowing
+- The article image when there is one
+- A "Read full story" link if you want to go deeper
+
+Swipe down for the next story. That's the whole app.
+
+---
+
+## How it works (the blueprint)
+
+Three pieces talk to each other:
+
+**1. The Guardian API** pulls the 10 most recent articles per category. It's free, works in production, and doesn't require a credit card. You get the headline, a short description, a thumbnail image, and the article URL.
+
+**2. Claude Haiku** takes all 10 articles at once and writes a TLDR + bullet points for each one in a single API call. Fast and cheap — it uses the smallest Claude model because the task is straightforward.
+
+**3. Next.js caches the result for 30 minutes** so you're not burning API credits every time someone loads the page. After 30 minutes, it fetches fresh news automatically.
+
+That's it. Fetch → summarize → cache → display.
+
+---
+
+## Run it yourself
+
+You need two API keys:
+
+| Key | Where to get it | Cost |
+|-----|----------------|------|
+| `ANTHROPIC_API_KEY` | [console.anthropic.com](https://console.anthropic.com) | Pay-as-you-go (tiny) |
+| `GUARDIAN_API_KEY` | [open-platform.theguardian.com](https://open-platform.theguardian.com/access/) | Free |
+
+Then:
+
+```bash
+git clone https://github.com/Silicon-Valli/tldr-news.git
+cd tldr-news
+npm install
+```
+
+Create a `.env.local` file in the root:
+
+```
+ANTHROPIC_API_KEY=your_key_here
+GUARDIAN_API_KEY=your_key_here
+```
+
+Start it:
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [localhost:3000](http://localhost:3000) on your phone (or use browser dev tools in mobile view). The swipe experience only really makes sense on a narrow screen.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+---
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Deploy it
 
-## Learn More
+Push to GitHub, connect to [Vercel](https://vercel.com), add your two environment variables in the Vercel project settings, and deploy. Takes about five minutes.
 
-To learn more about Next.js, take a look at the following resources:
+The Guardian API `test` key works for local development but swap in your real key for production.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+---
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Tech stack
 
-## Deploy on Vercel
+- **[Next.js](https://nextjs.org)** — App Router, server-side API routes, `unstable_cache` for caching
+- **[The Guardian Open Platform](https://open-platform.theguardian.com)** — News data (free tier, production-ready)
+- **[Anthropic Claude Haiku](https://www.anthropic.com)** — AI summaries and bullet points
+- **[Vercel](https://vercel.com)** — Hosting and deployment
+- **CSS scroll-snap** — The swipe mechanic, no JavaScript library needed
+- **Tailwind CSS** — Styling
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+---
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## The philosophy
+
+Most news apps are designed to maximize time-on-app. This one is designed to minimize it. Read five stories in two minutes, know what's happening, close it and get on with your day.
+
+Built in one day as part of a personal challenge: one polished MVP per day.
+
+---
+
+## License
+
+MIT. Fork it, break it, make it yours.
