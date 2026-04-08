@@ -41,7 +41,7 @@ export function NewsCard({ article, index, total }: NewsCardProps) {
 
       {/* Image with gradient fade */}
       {hasImage && (
-        <div className="relative flex-shrink-0" style={{ height: '38%' }}>
+        <div className="relative flex-shrink-0" style={{ height: '26%' }}>
           <img
             src={article.imageUrl}
             alt=""
@@ -93,17 +93,17 @@ export function NewsCard({ article, index, total }: NewsCardProps) {
           <div className="w-8 h-px bg-gray-700 flex-shrink-0" />
 
           {/* TLDR */}
-          <p className="text-sm text-gray-400 leading-relaxed flex-shrink-0">
+          <p className="text-base text-gray-300 leading-relaxed flex-shrink-0">
             {article.tldr}
           </p>
 
           {/* Bullets */}
           {article.bullets && article.bullets.length > 0 && (
-            <ul className="flex flex-col gap-2 flex-shrink-0">
+            <ul className="flex flex-col gap-3 flex-shrink-0">
               {article.bullets.slice(0, 3).map((bullet, i) => (
                 <li key={i} className="flex items-start gap-2.5">
-                  <span className={`mt-[5px] w-1 h-1 rounded-full flex-shrink-0 ${styles.dot} opacity-70`} />
-                  <span className="text-xs text-gray-500 leading-relaxed">{bullet}</span>
+                  <span className={`mt-[7px] w-1.5 h-1.5 rounded-full flex-shrink-0 ${styles.dot} opacity-70`} />
+                  <span className="text-sm text-gray-400 leading-relaxed">{bullet}</span>
                 </li>
               ))}
             </ul>
