@@ -75,11 +75,16 @@ Open [localhost:3000](http://localhost:3000) in your browser. The swipe experien
 
 ---
 
-## Deploy it
+## How to steal it
 
-Push to GitHub, connect to [Vercel](https://vercel.com), add your two environment variables in the Vercel project settings, and deploy. Takes about five minutes.
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/Silicon-Valli/tldr-news&env=ANTHROPIC_API_KEY,GUARDIAN_API_KEY)
 
-The Guardian API `test` key works for local development but swap in your real key for production.
+No terminal? One click.
+Click the button, sign into Vercel with GitHub, paste your Anthropic and Guardian API keys when it asks, and you're live. Takes about 2 minutes. Get your Anthropic key at [console.anthropic.com](https://console.anthropic.com) and your Guardian key at [open-platform.theguardian.com/access](https://open-platform.theguardian.com/access/) — both are free to start.
+
+---
+
+Rather do it manually? Clone the repo, add your keys to `.env.local`, and push to Vercel. The Guardian API `test` key works locally but use your real key in production.
 
 ---
 
