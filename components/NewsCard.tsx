@@ -37,32 +37,26 @@ export function NewsCard({ article, index, total }: NewsCardProps) {
   const hasImage = !!article.imageUrl;
 
   return (
-    <div className="h-[100dvh] flex flex-col snap-start snap-always overflow-hidden">
+    // 100svh = conservative safe height — always fits even with Safari URL bar visible
+    <div className="h-[100svh] flex flex-col snap-start snap-always overflow-hidden">
 
-      {/* Image with gradient fade */}
+      {/* Image */}
       {hasImage && (
-        <div className="relative flex-shrink-0" style={{ height: '26%' }}>
-          <img
-            src={article.imageUrl}
-            alt=""
-            className="w-full h-full object-cover"
-          />
-          <div
-            className="absolute inset-0"
-            style={{
-              background:
-                'linear-gradient(to bottom, rgba(10,10,10,0.1) 0%, rgba(10,10,10,0.5) 60%, rgba(10,10,10,1) 100%)',
-            }}
-          />
+        <div className="relative flex-shrink-0" style={{ height: '22%' }}>
+          <img src={article.imageUrl} alt="" className="w-full h-full object-cover" />
+          <div className="absolute inset-0" style={{
+            background: 'linear-gradient(to bottom, rgba(10,10,10,0.1) 0%, rgba(10,10,10,0.5) 60%, rgba(10,10,10,1) 100%)',
+          }} />
         </div>
       )}
 
-      {/* Content area */}
+      {/* Scrollable content */}
       <div
-        className={`flex flex-col px-6 ${hasImage ? '-mt-6 flex-1 min-h-0' : 'flex-1 min-h-0 pt-5'}`}
+        className={`flex flex-col gap-3 px-6 flex-1 min-h-0 overflow-y-auto ${hasImage ? '-mt-5' : 'pt-5'}`}
+        style={{ scrollbarWidth: 'none', paddingBottom: '8px' }}
       >
         {/* Meta row */}
-        <div className="flex items-center justify-between mb-4 flex-shrink-0">
+        <div className="flex items-center justify-between flex-shrink-0">
           <div className="flex items-center gap-2">
             <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${styles.dot}`} />
             <span className={`text-xs font-semibold tracking-wide uppercase ${styles.badge}`}>
@@ -81,58 +75,55 @@ export function NewsCard({ article, index, total }: NewsCardProps) {
           </div>
         </div>
 
-        {/* Scrollable content — button lives inside here so it's always reachable */}
-        <div
-          className="flex flex-col gap-4 flex-1 min-h-0 overflow-y-auto"
-          style={{ scrollbarWidth: 'none', paddingBottom: 'max(24px, env(safe-area-inset-bottom))' }}
-        >
-          {/* Headline */}
-          <h2 className="text-[1.45rem] font-bold leading-[1.25] text-white tracking-tight flex-shrink-0">
-            {article.title}
-          </h2>
+        {/* Headline */}
+        <h2 className="text-[1.3rem] font-bold leading-tight text-white tracking-tight flex-shrink-0">
+          {article.title}
+        </h2>
 
-          {/* Divider */}
-          <div className="w-8 h-px bg-gray-700 flex-shrink-0" />
+        {/* Divider */}
+        <div className="w-8 h-px bg-gray-700 flex-shrink-0" />
 
-          {/* TLDR */}
-          <p className="text-base text-gray-300 leading-relaxed flex-shrink-0">
-            {article.tldr}
-          </p>
+        {/* TLDR */}
+        <p className="text-base text-gray-300 leading-snug flex-shrink-0">
+          {article.tldr}
+        </p>
 
-          {/* Bullets */}
-          {article.bullets && article.bullets.length > 0 && (
-            <ul className="flex flex-col gap-3 flex-shrink-0">
-              {article.bullets.slice(0, 3).map((bullet, i) => (
-                <li key={i} className="flex items-start gap-2.5">
-                  <span className={`mt-[7px] w-1.5 h-1.5 rounded-full flex-shrink-0 ${styles.dot} opacity-70`} />
-                  <span className="text-sm text-gray-400 leading-relaxed">{bullet}</span>
-                </li>
-              ))}
-            </ul>
-          )}
+        {/* Bullets — max 2, slightly bigger */}
+        {article.bullets && article.bullets.length > 0 && (
+          <ul className="flex flex-col gap-2 flex-shrink-0">
+            {article.bullets.slice(0, 2).map((bullet, i) => (
+              <li key={i} className="flex items-start gap-2.5">
+                <span className={`mt-[6px] w-1.5 h-1.5 rounded-full flex-shrink-0 ${styles.dot} opacity-70`} />
+                <span className="text-[15px] text-gray-400 leading-snug">{bullet}</span>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
 
-          {/* Read full story — inside scroll area, always reachable */}
-          <div className="flex items-center justify-between pt-2 flex-shrink-0">
-            <a
-              href={article.url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-2 text-sm font-medium text-white bg-white/10 hover:bg-white/15 active:bg-white/20 transition-colors px-4 py-2.5 rounded-full"
-            >
-              Read full story
-              <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
-                <path d="M2.5 6h7M6 2.5l3.5 3.5L6 9.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-              </svg>
-            </a>
-
-            <div className="flex flex-col items-center gap-1 text-gray-700">
-              <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
-                <path d="M8 3v10M4 9l4 4 4-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-              </svg>
-              <span className="text-[10px]">swipe</span>
-            </div>
-          </div>
+      {/* Button — always pinned at bottom, never scrolls away */}
+      <div
+        className="flex-shrink-0 flex items-center justify-between px-6 pt-3"
+        style={{ paddingBottom: 'max(20px, env(safe-area-inset-bottom))' }}
+      >
+        <div className="flex items-center gap-1.5 text-gray-700">
+          <svg width="12" height="12" viewBox="0 0 16 16" fill="none">
+            <path d="M8 3v10M4 9l4 4 4-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
+          <span className="text-[10px] tracking-wide">swipe</span>
         </div>
+
+        <a
+          href={article.url}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex items-center gap-2 text-sm font-medium text-white bg-white/10 hover:bg-white/15 active:bg-white/20 transition-colors px-4 py-2.5 rounded-full"
+        >
+          Read full story
+          <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+            <path d="M2.5 6h7M6 2.5l3.5 3.5L6 9.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
+        </a>
       </div>
     </div>
   );
