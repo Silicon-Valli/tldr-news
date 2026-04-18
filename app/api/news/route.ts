@@ -38,13 +38,27 @@ const RSS_FEEDS: Record<string, { url: string; source: string }[]> = {
   ],
 };
 
-function getImageUrl(item: CustomItem): string | undefined {
-  if (item.mediaThumbnail?.$.url) return item.mediaThumbnail.$.url;
-  if (item.mediaContent?.$.url) return item.mediaContent.$.url;
-  if (item.enclosure?.url && item.enclosure.url.match(/\.(jpg|jpeg|png|webp)/i)) {
-    return item.enclosure.url;
+function upgradeImageUrl(url: string): string {
+  // BBC: ichef.bbci.co.uk/news/256/... → /news/1024/...
+  // also handles /images/ic/256x144/ → /images/ic/1024x576/
+  if (url.includes('ichef.bbci.co.uk')) {
+    return url
+      .replace(/\/news\/\d+\//, '/news/1024/')
+      .replace(/\/ic\/\d+x\d+\//, '/ic/1024x576/');
   }
-  return undefined;
+  // Guardian: /img/width/X/... → higher res via their image service
+  if (url.includes('media.guim.co.uk')) {
+    return url.replace(/\/w_\d+/, '/w_1200').replace(/\/(\d+)\/(\d+)\//, '/1200/675/');
+  }
+  return url;
+}
+
+function getImageUrl(item: CustomItem): string | undefined {
+  const raw =
+    item.mediaThumbnail?.$.url ||
+    item.mediaContent?.$.url ||
+    (item.enclosure?.url?.match(/\.(jpg|jpeg|png|webp)/i) ? item.enclosure.url : undefined);
+  return raw ? upgradeImageUrl(raw) : undefined;
 }
 
 async function fetchAndSummarize(category: string) {
@@ -145,7 +159,7 @@ ${articleList}`,
 const getCachedNews = (category: string) =>
   unstable_cache(
     () => fetchAndSummarize(category),
-    [`news-rss-v1-${category}`],
+    [`news-rss-v2-${category}`],
     { revalidate: 1800 }
   )();
 
