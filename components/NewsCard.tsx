@@ -47,7 +47,6 @@ export function NewsCard({ article, index, total }: NewsCardProps) {
             alt=""
             className="w-full h-full object-cover"
           />
-          {/* gradient: transparent top → full dark bottom */}
           <div
             className="absolute inset-0"
             style={{
@@ -60,7 +59,7 @@ export function NewsCard({ article, index, total }: NewsCardProps) {
 
       {/* Content area */}
       <div
-        className={`flex flex-col px-6 ${hasImage ? '-mt-6 flex-1 min-h-0' : 'flex-1 justify-center pt-5'}`}
+        className={`flex flex-col px-6 ${hasImage ? '-mt-6 flex-1 min-h-0' : 'flex-1 min-h-0 pt-5'}`}
       >
         {/* Meta row */}
         <div className="flex items-center justify-between mb-4 flex-shrink-0">
@@ -82,8 +81,11 @@ export function NewsCard({ article, index, total }: NewsCardProps) {
           </div>
         </div>
 
-        {/* Scrollable content if needed */}
-        <div className="flex flex-col gap-4 flex-1 min-h-0 overflow-y-auto pb-2" style={{ scrollbarWidth: 'none' }}>
+        {/* Scrollable content — button lives inside here so it's always reachable */}
+        <div
+          className="flex flex-col gap-4 flex-1 min-h-0 overflow-y-auto"
+          style={{ scrollbarWidth: 'none', paddingBottom: 'max(24px, env(safe-area-inset-bottom))' }}
+        >
           {/* Headline */}
           <h2 className="text-[1.45rem] font-bold leading-[1.25] text-white tracking-tight flex-shrink-0">
             {article.title}
@@ -108,29 +110,29 @@ export function NewsCard({ article, index, total }: NewsCardProps) {
               ))}
             </ul>
           )}
-        </div>
-      </div>
 
-      {/* Bottom bar */}
-      <div className="flex items-center justify-between px-6 pb-10 pt-3 flex-shrink-0">
-        <div className="flex flex-col items-center gap-1 text-gray-700">
-          <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
-            <path d="M8 3v10M4 9l4 4 4-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-          </svg>
-          <span className="text-[10px]">swipe</span>
-        </div>
+          {/* Read full story — inside scroll area, always reachable */}
+          <div className="flex items-center justify-between pt-2 flex-shrink-0">
+            <a
+              href={article.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-2 text-sm font-medium text-white bg-white/10 hover:bg-white/15 active:bg-white/20 transition-colors px-4 py-2.5 rounded-full"
+            >
+              Read full story
+              <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+                <path d="M2.5 6h7M6 2.5l3.5 3.5L6 9.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            </a>
 
-        <a
-          href={article.url}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="flex items-center gap-2 text-sm font-medium text-white bg-white/10 hover:bg-white/15 active:bg-white/20 transition-colors px-4 py-2.5 rounded-full"
-        >
-          Read full story
-          <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
-            <path d="M2.5 6h7M6 2.5l3.5 3.5L6 9.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-          </svg>
-        </a>
+            <div className="flex flex-col items-center gap-1 text-gray-700">
+              <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
+                <path d="M8 3v10M4 9l4 4 4-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+              <span className="text-[10px]">swipe</span>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );

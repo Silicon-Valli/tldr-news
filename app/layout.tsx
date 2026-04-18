@@ -4,6 +4,10 @@ import './globals.css';
 export const metadata: Metadata = {
   title: 'TLDR News',
   description: 'The news in a few sentences.',
+  icons: {
+    icon: '/favicon.svg',
+    shortcut: '/favicon.svg',
+  },
   appleWebApp: {
     capable: true,
     statusBarStyle: 'black-translucent',
