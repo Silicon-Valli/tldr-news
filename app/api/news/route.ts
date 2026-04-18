@@ -1,56 +1,96 @@
 import { NextRequest, NextResponse } from 'next/server';
 import Anthropic from '@anthropic-ai/sdk';
 import { unstable_cache } from 'next/cache';
+import Parser from 'rss-parser';
 
-const GUARDIAN_SECTION_MAP: Record<string, string> = {
-  world: 'world',
-  tech: 'technology',
-  business: 'business',
-  politics: 'politics',
+type CustomItem = {
+  mediaThumbnail?: { $: { url: string } };
+  mediaContent?: { $: { url: string } };
+  enclosure?: { url: string };
 };
 
-interface GuardianArticle {
-  id: string;
-  webTitle: string;
-  webUrl: string;
-  webPublicationDate: string;
-  fields?: {
-    trailText?: string;
-    thumbnail?: string;
-  };
+const parser = new Parser<Record<string, never>, CustomItem>({
+  customFields: {
+    item: [
+      ['media:thumbnail', 'mediaThumbnail'],
+      ['media:content', 'mediaContent'],
+      ['enclosure', 'enclosure'],
+    ],
+  },
+});
+
+const RSS_FEEDS: Record<string, { url: string; source: string }[]> = {
+  world: [
+    { url: 'http://feeds.bbci.co.uk/news/world/rss.xml', source: 'BBC News' },
+    { url: 'https://www.theguardian.com/world/rss', source: 'The Guardian' },
+  ],
+  tech: [
+    { url: 'http://feeds.bbci.co.uk/news/technology/rss.xml', source: 'BBC News' },
+    { url: 'https://www.theverge.com/rss/index.xml', source: 'The Verge' },
+  ],
+  business: [
+    { url: 'http://feeds.bbci.co.uk/news/business/rss.xml', source: 'BBC News' },
+    { url: 'https://www.theguardian.com/business/rss', source: 'The Guardian' },
+  ],
+  politics: [
+    { url: 'http://feeds.bbci.co.uk/news/politics/rss.xml', source: 'BBC News' },
+    { url: 'https://feeds.npr.org/1014/rss.xml', source: 'NPR' },
+  ],
+};
+
+function getImageUrl(item: CustomItem): string | undefined {
+  if (item.mediaThumbnail?.$.url) return item.mediaThumbnail.$.url;
+  if (item.mediaContent?.$.url) return item.mediaContent.$.url;
+  if (item.enclosure?.url && item.enclosure.url.match(/\.(jpg|jpeg|png|webp)/i)) {
+    return item.enclosure.url;
+  }
+  return undefined;
 }
 
 async function fetchAndSummarize(category: string) {
-  const section = GUARDIAN_SECTION_MAP[category] || 'world';
-  const apiKey = process.env.GUARDIAN_API_KEY || 'test';
+  const feeds = RSS_FEEDS[category] || RSS_FEEDS.world;
 
-  const url = new URL('https://content.guardianapis.com/search');
-  url.searchParams.set('section', section);
-  url.searchParams.set('api-key', apiKey);
-  url.searchParams.set('page-size', '10');
-  url.searchParams.set('order-by', 'newest');
-  url.searchParams.set('show-fields', 'trailText,thumbnail');
-
-  const newsResponse = await fetch(url.toString());
-  const newsData = await newsResponse.json();
-
-  if (!newsData.response?.results || newsData.response.results.length === 0) {
-    console.error('Guardian API issue:', JSON.stringify(newsData).slice(0, 300));
-    return [];
-  }
-
-  const articles: GuardianArticle[] = newsData.response.results.filter(
-    (a: GuardianArticle) => a.webTitle && a.webUrl
+  const feedResults = await Promise.allSettled(
+    feeds.map(f => parser.parseURL(f.url))
   );
 
-  if (articles.length === 0) return [];
+  const articles: Array<{
+    title: string;
+    url: string;
+    description: string;
+    publishedAt: string;
+    imageUrl?: string;
+    source: string;
+  }> = [];
+
+  feedResults.forEach((result, i) => {
+    if (result.status === 'fulfilled') {
+      result.value.items.slice(0, 6).forEach(item => {
+        if (item.title && item.link) {
+          articles.push({
+            title: item.title.trim(),
+            url: item.link,
+            description: item.contentSnippet || item.summary || '',
+            publishedAt: item.pubDate || new Date().toISOString(),
+            imageUrl: getImageUrl(item as CustomItem),
+            source: feeds[i].source,
+          });
+        }
+      });
+    } else {
+      console.error(`RSS feed failed (${feeds[i].source}):`, result.reason);
+    }
+  });
+
+  const topArticles = articles.slice(0, 10);
+  if (topArticles.length === 0) return [];
 
   const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
-  const articleList = articles
+  const articleList = topArticles
     .map(
       (a, i) =>
-        `${i + 1}. Title: "${a.webTitle}"\n   Description: "${a.fields?.trailText || 'No description available'}"`
+        `${i + 1}. Title: "${a.title}"\n   Description: "${a.description}"`
     )
     .join('\n\n');
 
@@ -83,29 +123,29 @@ ${articleList}`,
       summaryData = JSON.parse(jsonMatch[0]);
     }
   } catch {
-    summaryData = articles.map((a) => ({
-      tldr: a.fields?.trailText || a.webTitle,
+    summaryData = topArticles.map(a => ({
+      tldr: a.description || a.title,
       bullets: [],
     }));
   }
 
-  return articles.map((a, i) => ({
-    id: `${category}-${i}-${a.id.slice(-8)}`,
-    title: a.webTitle,
-    tldr: summaryData[i]?.tldr || a.fields?.trailText || a.webTitle,
+  return topArticles.map((a, i) => ({
+    id: `${category}-${i}-${Date.now()}`,
+    title: a.title,
+    tldr: summaryData[i]?.tldr || a.description || a.title,
     bullets: summaryData[i]?.bullets || [],
-    source: 'The Guardian',
-    url: a.webUrl,
-    publishedAt: a.webPublicationDate,
+    source: a.source,
+    url: a.url,
+    publishedAt: a.publishedAt,
     category,
-    imageUrl: a.fields?.thumbnail || undefined,
+    imageUrl: a.imageUrl,
   }));
 }
 
 const getCachedNews = (category: string) =>
   unstable_cache(
     () => fetchAndSummarize(category),
-    [`news-guardian-v2-${category}`],
+    [`news-rss-v1-${category}`],
     { revalidate: 1800 }
   )();
 
