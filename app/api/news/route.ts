@@ -39,16 +39,17 @@ const RSS_FEEDS: Record<string, { url: string; source: string }[]> = {
 };
 
 function upgradeImageUrl(url: string): string {
-  // BBC: ichef.bbci.co.uk/news/256/... → /news/1024/...
-  // also handles /images/ic/256x144/ → /images/ic/1024x576/
   if (url.includes('ichef.bbci.co.uk')) {
+    // Old format: /news/240/cpsprodpb/...
+    // New format: /ace/standard/240/cpsprodpb/...
     return url
-      .replace(/\/news\/\d+\//, '/news/1024/')
-      .replace(/\/ic\/\d+x\d+\//, '/ic/1024x576/');
+      .replace(/\/news\/\d+\//, '/news/976/')
+      .replace(/\/ace\/standard\/\d+\//, '/ace/standard/976/')
+      .replace(/\/images\/ic\/\d+x\d+\//, '/images/ic/976x549/');
   }
-  // Guardian: /img/width/X/... → higher res via their image service
   if (url.includes('media.guim.co.uk')) {
-    return url.replace(/\/w_\d+/, '/w_1200').replace(/\/(\d+)\/(\d+)\//, '/1200/675/');
+    // Guardian image CDN: swap width in path
+    return url.replace(/\/\d+\.jpg$/, '/1200.jpg').replace(/\/\d+\.png$/, '/1200.png');
   }
   return url;
 }
@@ -159,7 +160,7 @@ ${articleList}`,
 const getCachedNews = (category: string) =>
   unstable_cache(
     () => fetchAndSummarize(category),
-    [`news-rss-v2-${category}`],
+    [`news-rss-v3-${category}`],
     { revalidate: 1800 }
   )();
 

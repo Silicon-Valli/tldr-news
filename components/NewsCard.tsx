@@ -37,7 +37,6 @@ export function NewsCard({ article, index, total }: NewsCardProps) {
   const hasImage = !!article.imageUrl;
 
   return (
-    // 100svh = conservative safe height — always fits even with Safari URL bar visible
     <div className="h-[100svh] flex flex-col snap-start snap-always overflow-hidden">
 
       {/* Image */}
@@ -50,10 +49,10 @@ export function NewsCard({ article, index, total }: NewsCardProps) {
         </div>
       )}
 
-      {/* Scrollable content */}
+      {/* Scrollable content — button lives here so it stays with the story */}
       <div
         className={`flex flex-col gap-3 px-6 flex-1 min-h-0 overflow-y-auto ${hasImage ? '-mt-5' : 'pt-5'}`}
-        style={{ scrollbarWidth: 'none', paddingBottom: '8px' }}
+        style={{ scrollbarWidth: 'none', paddingBottom: 'max(28px, env(safe-area-inset-bottom))' }}
       >
         {/* Meta row */}
         <div className="flex items-center justify-between flex-shrink-0">
@@ -88,7 +87,7 @@ export function NewsCard({ article, index, total }: NewsCardProps) {
           {article.tldr}
         </p>
 
-        {/* Bullets — max 2, slightly bigger */}
+        {/* Bullets — max 2 */}
         {article.bullets && article.bullets.length > 0 && (
           <ul className="flex flex-col gap-2 flex-shrink-0">
             {article.bullets.slice(0, 2).map((bullet, i) => (
@@ -99,31 +98,28 @@ export function NewsCard({ article, index, total }: NewsCardProps) {
             ))}
           </ul>
         )}
-      </div>
 
-      {/* Button — always pinned at bottom, never scrolls away */}
-      <div
-        className="flex-shrink-0 flex items-center justify-between px-6 pt-3"
-        style={{ paddingBottom: 'max(20px, env(safe-area-inset-bottom))' }}
-      >
-        <div className="flex items-center gap-1.5 text-gray-700">
-          <svg width="12" height="12" viewBox="0 0 16 16" fill="none">
-            <path d="M8 3v10M4 9l4 4 4-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-          </svg>
-          <span className="text-[10px] tracking-wide">swipe</span>
+        {/* Button row — part of content, always reachable with a short scroll */}
+        <div className="flex items-center justify-between pt-1 flex-shrink-0">
+          <a
+            href={article.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-2 text-sm font-medium text-white bg-white/10 hover:bg-white/15 active:bg-white/20 transition-colors px-4 py-2.5 rounded-full"
+          >
+            Read full story
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+              <path d="M2.5 6h7M6 2.5l3.5 3.5L6 9.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+          </a>
+
+          <div className="flex items-center gap-1.5 text-gray-700">
+            <svg width="12" height="12" viewBox="0 0 16 16" fill="none">
+              <path d="M8 3v10M4 9l4 4 4-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+            <span className="text-[10px] tracking-wide">swipe</span>
+          </div>
         </div>
-
-        <a
-          href={article.url}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="flex items-center gap-2 text-sm font-medium text-white bg-white/10 hover:bg-white/15 active:bg-white/20 transition-colors px-4 py-2.5 rounded-full"
-        >
-          Read full story
-          <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
-            <path d="M2.5 6h7M6 2.5l3.5 3.5L6 9.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-          </svg>
-        </a>
       </div>
     </div>
   );

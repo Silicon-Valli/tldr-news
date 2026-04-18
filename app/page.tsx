@@ -32,7 +32,10 @@ export default function Home() {
       {/* Header */}
       <div className="flex-shrink-0 pt-12 pb-1">
         <div className="px-6 pb-4 flex items-center justify-between">
-          <h1 className="text-base font-bold text-white tracking-tight">TL;DR</h1>
+          <div className="flex items-baseline gap-2">
+            <h1 className="text-base font-bold text-white tracking-tight">TL;DR</h1>
+            <span className="text-[11px] text-gray-500">too long; did read</span>
+          </div>
           <span className="text-[10px] text-gray-600 uppercase tracking-widest font-medium">
             {new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
           </span>
