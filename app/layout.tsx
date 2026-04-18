@@ -2,8 +2,8 @@ import type { Metadata, Viewport } from 'next';
 import './globals.css';
 
 export const metadata: Metadata = {
-  title: 'TLDR News',
-  description: 'The news in a few sentences.',
+  title: 'TL;DR',
+  description: 'too long; did read.',
   icons: {
     icon: '/favicon.svg',
     shortcut: '/favicon.svg',
@@ -11,7 +11,7 @@ export const metadata: Metadata = {
   appleWebApp: {
     capable: true,
     statusBarStyle: 'black-translucent',
-    title: 'TLDR News',
+    title: 'TL;DR',
   },
 };
 

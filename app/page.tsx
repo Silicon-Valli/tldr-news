@@ -32,7 +32,7 @@ export default function Home() {
       {/* Header */}
       <div className="flex-shrink-0 pt-12 pb-1">
         <div className="px-6 pb-4 flex items-center justify-between">
-          <h1 className="text-base font-bold text-white tracking-tight">TLDR News</h1>
+          <h1 className="text-base font-bold text-white tracking-tight">TL;DR</h1>
           <span className="text-[10px] text-gray-600 uppercase tracking-widest font-medium">
             {new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
           </span>
@@ -59,8 +59,8 @@ export default function Home() {
 
         {/* Left label */}
         <div className="mr-10 text-right">
-          <p className="text-white text-3xl font-bold tracking-tight mb-1">TLDR News</p>
-          <p className="text-gray-500 text-sm">The news. Without the noise.</p>
+          <p className="text-white text-3xl font-bold tracking-tight mb-1">TL;DR</p>
+          <p className="text-gray-500 text-sm">too long; did read.</p>
         </div>
 
         {/* Phone frame */}

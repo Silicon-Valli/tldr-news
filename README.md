@@ -1,4 +1,4 @@
-# TLDR News
+# TL;DR — too long; did read.
 
 > The news. Without the noise.
 
@@ -6,7 +6,7 @@
 
 ---
 
-TLDR News is a mobile-first news reader that strips every story down to what actually matters — a two-sentence summary, three bullet points, and a link if you want more. Swipe through like TikTok, but for staying informed instead of doomscrolling.
+TL;DR is a mobile-first news reader that strips every story down to what actually matters — a two-sentence summary, three bullet points, and a link if you want more. Swipe through like TikTok, but for staying informed instead of doomscrolling.
 
 No ads. No algorithm trying to keep you angry. Just news, fast.
 
